@@ -20,6 +20,9 @@ AWS_EXTERN_C_END
 
 #if defined(CBMC)
 #    define AWS_ASSUME(cond) __CPROVER_assume(cond)
+#elif defined(__SEAHORN__)
+#    define AWS_ASSUME(cond) __VERIFIER_assume(cond)
+#    define __CPROVER_assume(cond) __VERIFIER_assume(cond)
 #elif defined(_MSC_VER)
 #    define AWS_ASSUME(cond) __assume(cond)
 #    define AWS_UNREACHABLE() __assume(0)
@@ -41,6 +44,10 @@ AWS_EXTERN_C_END
 #if defined(CBMC)
 #    include <assert.h>
 #    define AWS_ASSERT(cond) assert(cond)
+#elif defined(__SEAHORN__)
+#    include <seahorn/seahorn.h>
+#    define AWS_ASSERT(cond) sassert(cond)
+#    define assert(cond) sassert(cond)
 #elif defined(DEBUG_BUILD) || __clang_analyzer__
 #    define AWS_ASSERT(cond) AWS_FATAL_ASSERT(cond)
 #else
@@ -86,6 +93,15 @@ AWS_EXTERN_C_END
 #    define AWS_POSTCONDITION1(cond) __CPROVER_assert((cond), #    cond " check failed")
 #    define AWS_FATAL_POSTCONDITION2(cond, explanation) __CPROVER_assert((cond), (explanation))
 #    define AWS_FATAL_POSTCONDITION1(cond) __CPROVER_assert((cond), #    cond " check failed")
+#elif __SEAHORN__
+#    define AWS_PRECONDITION2(cond, explanation)  AWS_ASSUME((cond))
+#    define AWS_PRECONDITION1(cond) AWS_ASSUME((cond))
+#    define AWS_FATAL_PRECONDITION2(cond, explanation) AWS_ASSUME((cond))
+#    define AWS_FATAL_PRECONDITION1(cond) AWS_ASSUME((cond))
+#    define AWS_POSTCONDITION2(cond, explanation) sassert((cond))
+#    define AWS_POSTCONDITION1(cond) sassert((cond))
+#    define AWS_FATAL_POSTCONDITION2(cond, explanation) sassert((cond))
+#    define AWS_FATAL_POSTCONDITION1(cond) sassert((cond))
 #else
 #    define AWS_PRECONDITION2(cond, expl) AWS_ASSERT(cond)
 #    define AWS_PRECONDITION1(cond) AWS_ASSERT(cond)

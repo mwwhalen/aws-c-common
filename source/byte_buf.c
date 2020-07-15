@@ -14,6 +14,17 @@
 #    pragma warning(disable : 4706)
 #endif
 
+
+size_t size_t_nondet();
+char char_nondet();
+
+void alloc_buf(struct aws_byte_buf *buf) {
+    buf->len = size_t_nondet();
+    buf->capacity = size_t_nondet();
+    buf->buffer = malloc(buf->capacity);
+    AWS_PRECONDITION(aws_byte_buf_is_valid(buf));
+}
+
 int aws_byte_buf_init(struct aws_byte_buf *buf, struct aws_allocator *allocator, size_t capacity) {
     AWS_PRECONDITION(buf);
     AWS_PRECONDITION(allocator);
@@ -412,6 +423,40 @@ bool aws_array_eq_c_str_ignore_case(const void *const array, const size_t array_
     }
 
     return str_bytes[array_len] == '\0';
+}
+
+char char_nondet();
+
+void aws_array_eq_c_str_ignore_case_driver() {
+    struct aws_byte_buf buff1, buff2;
+    buff1.len = size_t_nondet();
+    buff1.capacity = size_t_nondet();
+    buff1.allocator = NULL;
+    AWS_PRECONDITION(buff1.capacity > 0);
+    buff1.buffer = malloc(buff1.capacity);
+    for (int i = 0; i<buff1.capacity; i++) {
+        ((char *)buff1.buffer)[i] = char_nondet();
+    }
+    printf("Length %lu, Capacity %lu, buffer %p\n",
+           buff1.len, buff1.capacity, buff1.buffer);
+    
+    bool result;
+    AWS_PRECONDITION(aws_byte_buf_is_valid(&buff1));
+
+    //    alloc_buf(&buff1);
+    //    alloc_buf(&buff2);
+    result = aws_array_eq_c_str_ignore_case(buff1.buffer, buff1.len, "hello");
+    printf("result: %d", result);
+    if (buff1.len > 0 && result) {
+        assert(((char *)buff1.buffer)[0] == 'h' ||
+               ((char *)buff1.buffer)[0] == 'H');
+    }
+    printf("Run complete.");
+}
+
+int main() {
+    aws_array_eq_c_str_ignore_case_driver();
+    return 0;
 }
 
 bool aws_array_eq_c_str(const void *const array, const size_t array_len, const char *const c_str) {

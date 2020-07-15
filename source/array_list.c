@@ -8,6 +8,12 @@
 
 #include <stdlib.h> /* qsort */
 
+#include <seahorn/seahorn.h>
+#include <stdio.h>
+
+size_t size_t_nondet();
+char char_nondet();
+
 int aws_array_list_calc_necessary_size(struct aws_array_list *AWS_RESTRICT list, size_t index, size_t *necessary_size) {
     AWS_PRECONDITION(aws_array_list_is_valid(list));
     size_t index_inc;
@@ -21,7 +27,48 @@ int aws_array_list_calc_necessary_size(struct aws_array_list *AWS_RESTRICT list,
         return AWS_OP_ERR;
     }
     AWS_POSTCONDITION(aws_array_list_is_valid(list));
+    
     return AWS_OP_SUCCESS;
+}
+
+void alloc_buffer(struct aws_array_list *list) {
+    // create harness with nondeterministic values for all fields and memory
+    // for data.
+    list->current_size = size_t_nondet();
+    list->length = size_t_nondet();
+    //AWS_PRECONDITION(list->current_size > 0);
+    list->item_size = size_t_nondet();
+    list->data = malloc(list->current_size);
+    list->alloc = NULL;
+    printf("List allocated.  current_size: %lu length = %lu item_size = %lu data=%p\n", list->current_size, list->length, list->item_size, list->data);
+    int i;
+    for (i=0; i<list->current_size; i++) {
+        ((char *)list->data)[i] = char_nondet();
+    }
+    printf("Filled buffer.\n");
+    AWS_PRECONDITION(aws_array_list_is_valid(list));
+    printf("Assumed precondition.\n");
+}
+
+int aws_array_list_calc_necessary_size_harness(void) {
+    printf("At harness.\n");
+    size_t necessary_size = size_t_nondet();
+    struct aws_array_list list;
+    size_t index = size_t_nondet();
+    int ret_val;
+    printf("At alloc buffer.\n");
+    alloc_buffer(&list);
+    ret_val = aws_array_list_calc_necessary_size(&list, index, &necessary_size);
+    AWS_POSTCONDITION(aws_array_list_is_valid(&list));
+    printf("All postconditions passed.\n");
+    return ret_val;
+}
+
+
+int main() {
+    printf("Started.\n");
+    aws_array_list_copy_harness();
+    return 0;
 }
 
 int aws_array_list_shrink_to_fit(struct aws_array_list *AWS_RESTRICT list) {
@@ -55,6 +102,17 @@ int aws_array_list_shrink_to_fit(struct aws_array_list *AWS_RESTRICT list) {
 
     AWS_POSTCONDITION(aws_array_list_is_valid(list));
     return aws_raise_error(AWS_ERROR_LIST_STATIC_MODE_CANT_SHRINK);
+}
+
+int aws_array_list_shrink_to_fit_harness(void) {
+    printf("At harness.\n");
+    struct aws_array_list list;
+    int ret_val;
+    printf("At alloc buffer.\n");
+    alloc_buffer(&list);
+    ret_val = aws_array_list_shrink_to_fit(&list);
+    printf("All postconditions passed.\n");
+    return ret_val;
 }
 
 int aws_array_list_copy(const struct aws_array_list *AWS_RESTRICT from, struct aws_array_list *AWS_RESTRICT to) {
@@ -104,6 +162,20 @@ int aws_array_list_copy(const struct aws_array_list *AWS_RESTRICT from, struct a
 
     return aws_raise_error(AWS_ERROR_DEST_COPY_TOO_SMALL);
 }
+
+int aws_array_list_copy_harness(void) {
+    printf("At harness.\n");
+    struct aws_array_list list1;
+    struct aws_array_list list2;
+    int ret_val;
+    printf("At alloc buffer.\n");
+    alloc_buffer(&list1);
+    alloc_buffer(&list2);
+    ret_val = aws_array_list_copy(&list1, &list2);
+    printf("All postconditions passed.\n");
+    return ret_val;
+}
+
 
 int aws_array_list_ensure_capacity(struct aws_array_list *AWS_RESTRICT list, size_t index) {
     AWS_PRECONDITION(aws_array_list_is_valid(list));

@@ -1,4 +1,4 @@
-#ifndef AWS_COMMON_CONFIG_H
+    #ifndef AWS_COMMON_CONFIG_H
 #define AWS_COMMON_CONFIG_H
 
 /**
