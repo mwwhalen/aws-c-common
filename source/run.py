@@ -13,7 +13,8 @@ def run_commands(fbase):
     # print(str);
     # os.system(str)
     # print('\n\n\n!!!About to solve!!!\n\n\n')
-    str = 'sea pf -m64 -I../include --show-invars -o ' + fbase + '.smt2 ' + fbase + '.c --cex=cex.ll';
+    str = 'sea pf -m64 --inline -I../include --show-invars -o ' + fbase + '.smt2 ' + fbase + '.c ' + \
+            '--cex=cex.ll --log=cex --bv-cex --verbose=1 --horn-strictly-la=false --horn-use-write=true';
     print(str);
     os.system(str);
     str = 'sea exe -I../include -m64 ' + fbase + '.c cex.ll -o cex.exe'
