@@ -428,7 +428,45 @@ bool aws_array_eq_c_str_ignore_case(const void *const array, const size_t array_
 char char_nondet();
 
 void aws_array_eq_c_str_ignore_case_driver() {
-    struct aws_byte_buf buff1, buff2;
+    struct aws_byte_buf buff1;
+    char *comparitor;
+
+    buff1.len = size_t_nondet();
+    buff1.capacity = size_t_nondet();
+    buff1.allocator = NULL;
+    AWS_PRECONDITION(buff1.capacity > 0);
+    buff1.buffer = malloc(buff1.capacity);
+    for (int i = 0; i<buff1.capacity; i++) {
+        ((char *)buff1.buffer)[i] = char_nondet();
+        comparitor[i] = char_nondet();
+    }
+    comparitor = malloc(buff1.capacity);
+    comparitor[buff1.capacity - 1] = '\0';
+
+//    alloc_buf(&buff1);
+    //    alloc_buf(&buff2);
+    printf("Length %lu, Capacity %lu, buffer %p\n",
+           buff1.len, buff1.capacity, buff1.buffer);
+    
+    bool result;
+    AWS_PRECONDITION(aws_byte_buf_is_valid(&buff1));
+
+    result = aws_array_eq_c_str_ignore_case(buff1.buffer, buff1.len, "hello");
+    printf("result: %d", result);
+    if (buff1.len > 0 && result) {
+        printf("results equal.\n");
+        printf("Buffer: %s", buff1.buffer);
+        assert(((char *)buff1.buffer)[0] == 'h' ||
+               ((char *)buff1.buffer)[0] == 'H');
+    }
+    printf("Run complete.");
+}
+
+void aws_array_eq_c_str_driver() {
+    struct aws_byte_buf buff1;
+    char *buff2;
+    size_t buff2_len = size_t_nondet();
+    size_t loc = size_t_nondet();
     buff1.len = size_t_nondet();
     buff1.capacity = size_t_nondet();
     buff1.allocator = NULL;
@@ -437,25 +475,29 @@ void aws_array_eq_c_str_ignore_case_driver() {
     for (int i = 0; i<buff1.capacity; i++) {
         ((char *)buff1.buffer)[i] = char_nondet();
     }
+    buff2 = malloc(buff2_len);
+    buff2[buff2_len - 1] = '\0';
+
     printf("Length %lu, Capacity %lu, buffer %p\n",
            buff1.len, buff1.capacity, buff1.buffer);
+    printf("buff2_len %lu, loc %lu\n", buff2_len, loc);
     
     bool result;
     AWS_PRECONDITION(aws_byte_buf_is_valid(&buff1));
+    AWS_PRECONDITION(loc < buff2_len);
 
-    //    alloc_buf(&buff1);
-    //    alloc_buf(&buff2);
-    result = aws_array_eq_c_str_ignore_case(buff1.buffer, buff1.len, "hello");
+    result = aws_array_eq_c_str(buff1.buffer, buff1.len, buff2);
     printf("result: %d", result);
     if (buff1.len > 0 && result) {
-        assert(((char *)buff1.buffer)[0] == 'h' ||
-               ((char *)buff1.buffer)[0] == 'H');
+        printf("results equal.\n");
+        printf("%d %d \n", ((char *)buff1.buffer)[loc], buff2[loc]);
+        assert(((char *)buff1.buffer)[loc] == buff2[loc]);
     }
     printf("Run complete.");
 }
 
 int main() {
-    aws_array_eq_c_str_ignore_case_driver();
+    aws_array_eq_c_str_driver();
     return 0;
 }
 
